@@ -4,7 +4,7 @@ stages:
   - deploy
 
 variables:
-  DOCKERHUB_REPO: "<your_dockerhub_username>/<your_dockerhub_repository>"
+  DOCKERHUB_REPO: "rkesari2002/file_upload"
   EC2_SSH_PRIVATE_KEY: $EC2_SSH_PRIVATE_KEY  # Define this as a secret variable in GitLab CI/CD settings
 
 pytest:
