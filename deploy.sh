@@ -16,7 +16,7 @@ docker stop $CONTAINER_NAME &> /dev/null
 docker rm $CONTAINER_NAME &> /dev/null
 
 # Run the Docker container with volume mounts
-docker run -d -p $PORT:5000 \
+docker run -d -p $PORT:80 \
   -v $INSTANCE_DIR:/app/instance:rw \
   -v $UPLOADS_DIR:/app/uploads:rw \
   --name $CONTAINER_NAME $IMAGE_NAME

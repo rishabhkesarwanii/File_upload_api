@@ -1,0 +1,37 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKERHUB_REPO: "<your_dockerhub_username>/<your_dockerhub_repository>"
+  EC2_SSH_PRIVATE_KEY: $EC2_SSH_PRIVATE_KEY  # Define this as a secret variable in GitLab CI/CD settings
+
+pytest:
+  stage: test
+  image: python:3.9-slim
+  script:
+    - pip install -r requirements.txt
+    - pytest test.py
+
+build_image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t $DOCKERHUB_REPO .
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD  # Docker Hub authentication
+    - docker push $DOCKERHUB_REPO
+
+deploy_to_ec2:
+  stage: deploy
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$EC2_SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -  # Add EC2 SSH private key
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -e "Host $EC2_HOSTNAME\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config  # Ignore SSH host key checking
+  script:
+    - ssh ec2-user@$EC2_HOSTNAME "docker pull $DOCKERHUB_REPO && docker-compose up -d"  # Replace with your deployment steps
